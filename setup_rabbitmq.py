@@ -19,14 +19,26 @@ class RabbitMQSetup:
         self.channel = self.connection.channel()
 
     def declare_queue(self, queue_name: str) -> None:
+        """
+        Declares a queue in RabbitMQ.
+        
+        Args:
+            queue_name (str): The name of the queue to declare.
+        """
         self.channel.queue_declare(queue=queue_name, durable=True)
         print(f"🐰 Declared queue: {queue_name}", flush=True)
 
     def setup_queues(self) -> None:
+        """
+        Declares all necessary queues in RabbitMQ.
+        """
         self.declare_queue('request_queue')
         self.declare_queue('response_queue')
 
     def close(self) -> None:
+        """
+        Closes the RabbitMQ connection.
+        """
         if self.connection:
             self.connection.close()
             print("🐰 RabbitMQ connection closed", flush=True)
