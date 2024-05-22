@@ -13,12 +13,30 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
       RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_DEFAULT_VHOST}
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq_setup:
+    build: .
+    command: python setup_rabbitmq.py
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_DEFAULT_VHOST}
 
   producer:
     build: .
     command: python producer.py
     depends_on:
-      - rabbitmq
+      rabbitmq_setup:
+        condition: service_completed_successfully
     environment:
       RABBITMQ_HOST: ${RABBITMQ_HOST}
 
@@ -26,7 +44,8 @@ services:
     build: .
     command: python consumer.py
     depends_on:
-      - rabbitmq
+      rabbitmq_setup:
+        condition: service_completed_successfully
     environment:
       RABBITMQ_HOST: ${RABBITMQ_HOST}
 
