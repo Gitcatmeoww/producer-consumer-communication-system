@@ -1,0 +1,34 @@
+version: "3.13"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_DEFAULT_VHOST}
+
+  producer:
+    build: .
+    command: python producer.py
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+
+  consumer:
+    build: .
+    command: python consumer.py
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+
+volumes:
+  rabbitmq_data:
