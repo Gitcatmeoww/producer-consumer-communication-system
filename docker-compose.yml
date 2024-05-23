@@ -18,6 +18,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - rabbitmq_network
 
   rabbitmq_setup:
     build: .
@@ -30,6 +32,8 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
       RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_DEFAULT_VHOST}
+    networks:
+      - rabbitmq_network
 
   producer:
     build: .
@@ -39,6 +43,11 @@ services:
         condition: service_completed_successfully
     environment:
       RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_DEFAULT_VHOST}
+    networks:
+      - rabbitmq_network
 
   consumer:
     build: .
@@ -48,6 +57,37 @@ services:
         condition: service_completed_successfully
     environment:
       RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_DEFAULT_VHOST}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:15672 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rabbitmq_network
+
+  tests:
+    build: .
+    depends_on:
+      rabbitmq_setup:
+        condition: service_completed_successfully
+      producer:
+        condition: service_completed_successfully
+      consumer:
+        condition: service_healthy
+    environment:
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_DEFAULT_VHOST}
+    command: ["pytest", "tests"]
+    networks:
+      - rabbitmq_network
+
+networks:
+  rabbitmq_network:
 
 volumes:
   rabbitmq_data:
