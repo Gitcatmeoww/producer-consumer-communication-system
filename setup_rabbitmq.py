@@ -33,7 +33,6 @@ class RabbitMQSetup:
         Declares all necessary queues in RabbitMQ.
         """
         self.declare_queue('request_queue')
-        self.declare_queue('response_queue')
 
     def close(self) -> None:
         """
