@@ -43,25 +43,28 @@ class Consumer:
             properties=pika.BasicProperties(correlation_id=props.correlation_id),
             body=response
         )
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+        ch.basic_ack(delivery_tag=method.delivery_tag)  # Acknowledge that the message has been processed
         logging.info(f"📤 Consumer sent response: {response} with correlation_id: {props.correlation_id}")
 
     async def consume(self) -> None:
         """
         Starts consuming messages from the request queue.
         """
-        self.channel.basic_qos(prefetch_count=1)
+        self.channel.basic_qos(prefetch_count=1)  # Ensures that the consumer fetches only one message at a time
         self.channel.basic_consume(queue='request_queue', on_message_callback=self.on_request)
 
         logging.info("🔄 Awaiting requests")
-        await self._consume()
+        await self._consume()  # Start the event loop to process messages
 
     async def _consume(self) -> None:
         """
         Helper method to run the event loop for consuming messages.
         """
         while True:
+            # Processes network events and handles message delivery
+            # Keep the connection to RabbitMQ alive and processes incoming messages
             self.connection.process_data_events()
+            # Help to manage CPU usage and prevent the loop from running too fast
             await asyncio.sleep(0.1)
 
     def close(self) -> None:
