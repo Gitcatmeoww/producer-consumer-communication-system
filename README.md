@@ -1,5 +1,9 @@
 # Producer/Consumer Service Communication Based on Queueing System
 
+## Solution Overview
+
+![alt text](sol_overview.png)
+
 ## Step 1: Understand the Requirements
 
 - **Goal**: Implement an asynchronous producer-consumer communication system
